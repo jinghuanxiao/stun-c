@@ -1,7 +1,7 @@
 PREFIX=/usr
 BINDIR=$(PREFIX)/bin
 
-CC=gcc
+CC=clang
 INSTALL=ginstall
 
 all:	stun

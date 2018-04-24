@@ -13,7 +13,7 @@
 #define STUN_CHANGE_PORT 0x00000002
 #define STUN_CHANGE_IP 0x00000004
 #define STUN_CHANGE_BOTH 0x00000006
-       
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -28,11 +28,15 @@
 #include <sys/time.h>
 #include "stun.h"
 #include <pthread.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/types.h>
 
 void stun_handle_packet(struct stun_state *st, struct sockaddr_in *src,void *buf, int len);
 static void stun_send(unsigned short msgtype,struct stun_state *st, void* data, int len,int testid);
 
-struct sockaddr_in stunserver={AF_INET,};
+struct sockaddr_in stunserver;
 
 static const char *stun_msg2str(int msg) {
 	switch(msg) {
@@ -91,7 +95,7 @@ static int stun_attr_change(long changeflag,void *data, int offset) {
 	unsigned short attrlen=sizeof(changeflag);
 	long val;
 	struct stun_attr *attr;
-	
+
 	attr=(struct stun_attr*)(data+offset);
 
 	attr->attr=htons(STUN_CHANGE_REQUEST);
@@ -103,9 +107,9 @@ static int stun_attr_change(long changeflag,void *data, int offset) {
 }
 
 static int stun_attr_string(char *s, short int msgtype, void *data, int offset) {
-	short int attrlen;	
+	short int attrlen;
 	struct stun_attr *attr;
-	
+
 	attr=(struct stun_attr*)(data+offset);
 
 	attr->attr=htons(msgtype);
@@ -123,7 +127,7 @@ static int stun_attr_string(char *s, short int msgtype, void *data, int offset) 
 }
 
 static int stun_attr_addr(struct sockaddr_in *sin, short int msgtype, void *data, int offset) {
-	short int attrlen=sizeof(struct stun_addr);	
+	short int attrlen=sizeof(struct stun_addr);
 	struct stun_attr *attr;
 	struct stun_addr *addr;
 
@@ -141,7 +145,7 @@ static int stun_attr_addr(struct sockaddr_in *sin, short int msgtype, void *data
 }
 
 struct sockaddr_in stun_addr_message(struct stun_addr *attrval) {
-	struct sockaddr_in attraddr={AF_INET,};
+	struct sockaddr_in attraddr=;
 	attraddr.sin_port=attrval->port;
 	attraddr.sin_addr.s_addr=attrval->addr;
 	return attraddr;
@@ -207,7 +211,7 @@ void *data_thread(void *data) {
 	struct pollfd psock[1];
 	unsigned char *buf;
 	socklen_t sinlen=sizeof(struct sockaddr_in);
-	struct sockaddr_in sin;	
+	struct sockaddr_in sin;
 
 	buf=malloc(MAX_BUFFER_SIZE);
 	bzero(buf,sizeof(buf));
@@ -314,7 +318,7 @@ void stun_handle_packet(struct stun_state *st,struct sockaddr_in *src, void *buf
 	} else {
 		return;
 	}
-		
+
 
 	switch (ntohs(hdr->msgtype)) {
 		case STUN_BINDREQ:
@@ -377,7 +381,7 @@ int main(int argc, char *argv[]) {
 	memcpy(&stunserver.sin_addr, hp->h_addr, sizeof(stunserver.sin_addr));
 	stunserver.sin_port = htons(3478);
 
-	st.sock=socket(PF_INET,SOCK_DGRAM,0);
+	st.sock=socket(AF_INET,SOCK_DGRAM,0);
 	flags = fcntl(st.sock, F_GETFL);
 	fcntl(st.sock, F_SETFL, flags | O_NONBLOCK);
 
