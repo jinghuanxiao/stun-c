@@ -145,7 +145,7 @@ static int stun_attr_addr(struct sockaddr_in *sin, short int msgtype, void *data
 }
 
 struct sockaddr_in stun_addr_message(struct stun_addr *attrval) {
-	struct sockaddr_in attraddr=;
+	struct sockaddr_in attraddr;
 	attraddr.sin_port=attrval->port;
 	attraddr.sin_addr.s_addr=attrval->addr;
 	return attraddr;
@@ -374,9 +374,9 @@ int main(int argc, char *argv[]) {
         pthread_attr_t attr;
         pthread_t thread;
 
+    printf("server=%s\n",argv[1]);
 	gettimeofday(&tv, 0);
 	srandom(tv.tv_sec + tv.tv_usec);
-
 	hp=gethostbyname(argv[1]);
 	memcpy(&stunserver.sin_addr, hp->h_addr, sizeof(stunserver.sin_addr));
 	stunserver.sin_port = htons(3478);
@@ -386,7 +386,7 @@ int main(int argc, char *argv[]) {
 	fcntl(st.sock, F_SETFL, flags | O_NONBLOCK);
 
 	st.bindaddr.sin_family=AF_INET;
-	st.bindaddr.sin_addr.s_addr=inet_addr(argv[2]);
+	st.bindaddr.sin_addr.s_addr=htons(INADDR_ANY);
 	st.bindaddr.sin_port=htons((random() % (65535-1023))+1023);
 	bind(st.sock,(struct sockaddr *)&st.bindaddr,sizeof(struct sockaddr_in));
 

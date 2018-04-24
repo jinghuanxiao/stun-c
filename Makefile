@@ -15,4 +15,4 @@ install: all
 	$(INSTALL) -D stun $(DESTDIR)$(BINDIR)/stun
 
 stun:
-	$(CC) stun.c -o stun -lpthread
+	$(CC) -g stun.c -o stun -lpthread
